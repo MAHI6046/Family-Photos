@@ -3,11 +3,14 @@ import { writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
 
+// IMPORTANT: prevent Next.js from trying to pre-render this API
 export const dynamic = 'force-dynamic'
 
+// Password for upload
 const UPLOAD_PASSWORD = process.env.UPLOAD_PASSWORD || 'family123'
 
-// Railway persistent storage
+// Base upload directory
+// Railway uses persistent volume at /data
 const BASE_UPLOAD_DIR = process.env.RAILWAY_ENVIRONMENT
   ? '/data/photos'
   : path.join(process.cwd(), 'public', 'photos')
@@ -31,8 +34,14 @@ export async function POST(request: NextRequest) {
     }
 
     const section = sectionValue.trim()
-    const sectionDir = path.join(BASE_UPLOAD_DIR, section)
 
+    // ✅ Ensure BASE directory exists (/data/photos)
+    if (!existsSync(BASE_UPLOAD_DIR)) {
+      await mkdir(BASE_UPLOAD_DIR, { recursive: true })
+    }
+
+    // ✅ Ensure SECTION directory exists (/data/photos/Shreyas etc)
+    const sectionDir = path.join(BASE_UPLOAD_DIR, section)
     if (!existsSync(sectionDir)) {
       await mkdir(sectionDir, { recursive: true })
     }
@@ -50,7 +59,9 @@ export async function POST(request: NextRequest) {
         .toString(36)
         .slice(2, 8)}${ext}`
 
-      await writeFile(path.join(sectionDir, filename), buffer)
+      const filePath = path.join(sectionDir, filename)
+      await writeFile(filePath, buffer)
+
       uploadedFiles.push(filename)
     }
 
