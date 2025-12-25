@@ -9,7 +9,12 @@ interface UploadModalProps {
   onUploadSuccess: () => void
 }
 
-export function UploadModal({ isOpen, onClose, section, onUploadSuccess }: UploadModalProps) {
+export function UploadModal({
+  isOpen,
+  onClose,
+  section,
+  onUploadSuccess,
+}: UploadModalProps) {
   const [password, setPassword] = useState('')
   const [files, setFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
@@ -20,8 +25,7 @@ export function UploadModal({ isOpen, onClose, section, onUploadSuccess }: Uploa
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const fileArray = Array.from(e.target.files)
-      setFiles(fileArray)
+      setFiles(Array.from(e.target.files))
       setError('')
     }
   }
@@ -44,6 +48,7 @@ export function UploadModal({ isOpen, onClose, section, onUploadSuccess }: Uploa
       const formData = new FormData()
       formData.append('password', password)
       formData.append('section', section)
+
       files.forEach((file) => {
         formData.append('photos', file)
       })
@@ -65,7 +70,7 @@ export function UploadModal({ isOpen, onClose, section, onUploadSuccess }: Uploa
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
-      
+
       onUploadSuccess()
       onClose()
     } catch (err: any) {
@@ -76,38 +81,36 @@ export function UploadModal({ isOpen, onClose, section, onUploadSuccess }: Uploa
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full p-6">
-        <div className="flex justify-between items-center mb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+        <div className="mb-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Upload Photos - {section}
+            Upload Photos – {section}
           </h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            ✕
           </button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Password
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               placeholder="Enter password"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Select Photos
             </label>
             <input
@@ -116,7 +119,7 @@ export function UploadModal({ isOpen, onClose, section, onUploadSuccess }: Uploa
               multiple
               accept="image/*"
               onChange={handleFileChange}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             />
             {files.length > 0 && (
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -126,25 +129,25 @@ export function UploadModal({ isOpen, onClose, section, onUploadSuccess }: Uploa
           </div>
 
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg">
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
               {error}
             </div>
           )}
 
-          <div className="flex justify-end space-x-3">
+          <div className="flex justify-end gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               disabled={uploading}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               Cancel
             </button>
             <button
               onClick={handleUpload}
               disabled={uploading}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {uploading ? 'Uploading...' : 'Upload'}
+              {uploading ? 'Uploading…' : 'Upload'}
             </button>
           </div>
         </div>
@@ -152,4 +155,5 @@ export function UploadModal({ isOpen, onClose, section, onUploadSuccess }: Uploa
     </div>
   )
 }
+
 
