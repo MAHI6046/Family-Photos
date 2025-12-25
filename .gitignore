@@ -35,7 +35,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# photos
-/public/photos
+# photos (commented out to allow photos in repository for Vercel deployment)
+# /public/photos
 /uploads
 
