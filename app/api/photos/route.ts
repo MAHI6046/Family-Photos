@@ -17,25 +17,33 @@ export async function GET(request: NextRequest) {
 
     const photosDir = path.join(process.cwd(), 'public', 'photos', section)
 
+    // Try to read the directory
     if (!existsSync(photosDir)) {
+      console.log(`Photos directory does not exist: ${photosDir}`)
       return NextResponse.json({ photos: [] })
     }
 
-    const files = await readdir(photosDir)
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']
-    
-    const photos = files
-      .filter((file) => {
-        const ext = path.extname(file).toLowerCase()
-        return imageExtensions.includes(ext)
-      })
-      .map((filename) => ({
-        id: filename,
-        filename,
-        section,
-      }))
+    try {
+      const files = await readdir(photosDir)
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']
+      
+      const photos = files
+        .filter((file) => {
+          const ext = path.extname(file).toLowerCase()
+          return imageExtensions.includes(ext)
+        })
+        .map((filename) => ({
+          id: filename,
+          filename,
+          section,
+        }))
 
-    return NextResponse.json({ photos })
+      console.log(`Found ${photos.length} photos in ${section}`)
+      return NextResponse.json({ photos })
+    } catch (readError: any) {
+      console.error(`Error reading directory ${photosDir}:`, readError)
+      return NextResponse.json({ photos: [] })
+    }
   } catch (error: any) {
     console.error('Error fetching photos:', error)
     return NextResponse.json(
@@ -44,4 +52,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

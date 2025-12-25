@@ -4,8 +4,17 @@ import { existsSync } from 'fs'
 import path from 'path'
 
 const UPLOAD_PASSWORD = process.env.UPLOAD_PASSWORD || 'family123' // Same password as upload
+const IS_VERCEL = process.env.VERCEL === '1'
 
 export async function POST(request: NextRequest) {
+  // Disable deletes on Vercel
+  if (IS_VERCEL) {
+    return NextResponse.json(
+      { error: 'Photo deletion is not available on Vercel. Please remove photos from the repository and redeploy.' },
+      { status: 503 }
+    )
+  }
+
   try {
     const body = await request.json()
     const { section, filename, password } = body
