@@ -4,17 +4,8 @@ import { existsSync } from 'fs'
 import path from 'path'
 
 const UPLOAD_PASSWORD = process.env.UPLOAD_PASSWORD || 'family123' // Default password, should be changed in .env.local
-const IS_VERCEL = process.env.VERCEL === '1'
 
 export async function POST(request: NextRequest) {
-  // Disable uploads on Vercel
-  if (IS_VERCEL) {
-    return NextResponse.json(
-      { error: 'Photo uploads are not available on Vercel. Please add photos to the repository and redeploy.' },
-      { status: 503 }
-    )
-  }
-
   try {
     const formData = await request.formData()
     const password = formData.get('password') as string

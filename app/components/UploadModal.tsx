@@ -56,12 +56,7 @@ export function UploadModal({ isOpen, onClose, section, onUploadSuccess }: Uploa
       const data = await response.json()
 
       if (!response.ok) {
-        const errorMessage = data.error || 'Upload failed'
-        // Show user-friendly message for Vercel limitation
-        if (errorMessage.includes('Vercel') || errorMessage.includes('not available')) {
-          throw new Error('Photo uploads are disabled on Vercel. To add photos, commit them to the repository and redeploy.')
-        }
-        throw new Error(errorMessage)
+        throw new Error(data.error || 'Upload failed')
       }
 
       // Reset form
