@@ -58,7 +58,17 @@ export function UploadModal({
         body: formData,
       })
 
-      const data = await response.json()
+      // ✅ SAFE response handling (fixes JSON error)
+      let data: any = {}
+      const text = await response.text()
+
+      if (text) {
+        try {
+          data = JSON.parse(text)
+        } catch {
+          data = {}
+        }
+      }
 
       if (!response.ok) {
         throw new Error(data.error || 'Upload failed')
@@ -81,7 +91,7 @@ export function UploadModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
       <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -96,21 +106,22 @@ export function UploadModal({
         </div>
 
         <div className="space-y-4">
+          {/* Password */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Password
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-              placeholder="Enter password"
+              className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
             />
           </div>
 
+          {/* File input */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Select Photos
             </label>
             <input
@@ -119,26 +130,28 @@ export function UploadModal({
               multiple
               accept="image/*"
               onChange={handleFileChange}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
             />
             {files.length > 0 && (
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              <p className="mt-2 text-sm text-gray-500">
                 {files.length} file(s) selected
               </p>
             )}
           </div>
 
+          {/* Error */}
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+            <div className="rounded-lg border border-red-300 bg-red-100 px-4 py-2 text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300">
               {error}
             </div>
           )}
 
+          {/* Buttons */}
           <div className="flex justify-end gap-3">
             <button
               onClick={onClose}
               disabled={uploading}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+              className="rounded-lg border px-4 py-2"
             >
               Cancel
             </button>
@@ -155,5 +168,3 @@ export function UploadModal({
     </div>
   )
 }
-
-
