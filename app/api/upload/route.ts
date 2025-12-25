@@ -1,68 +1,41 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
+import { NextRequest, NextResponse } from "next/server"
+import fs from "fs"
+import path from "path"
 
-const UPLOAD_PASSWORD = process.env.UPLOAD_PASSWORD || 'family123' // Default password, should be changed in .env.local
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { section: string; filename: string } }
+) {
+  const { section, filename } = params
 
-export async function POST(request: NextRequest) {
-  try {
-    const formData = await request.formData()
-    const password = formData.get('password') as string
-    const section = formData.get('section') as string
+  const filePath = path.join(
+    process.cwd(),
+    "public",
+    "photos",
+    section,
+    filename
+  )
 
-    // Verify password
-    if (password !== UPLOAD_PASSWORD) {
-      return NextResponse.json(
-        { error: 'Invalid password' },
-        { status: 401 }
-      )
-    }
-
-    if (!section) {
-      return NextResponse.json(
-        { error: 'Section is required' },
-        { status: 400 }
-      )
-    }
-
-    // Create directory for the section if it doesn't exist
-    const uploadDir = path.join(process.cwd(), 'public', 'photos', section)
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
-    }
-
-    const files = formData.getAll('photos') as File[]
-    const uploadedFiles: string[] = []
-
-    for (const file of files) {
-      if (file.size === 0) continue
-
-      const bytes = await file.arrayBuffer()
-      const buffer = Buffer.from(bytes)
-
-      // Generate unique filename
-      const timestamp = Date.now()
-      const randomStr = Math.random().toString(36).substring(2, 8)
-      const ext = path.extname(file.name)
-      const filename = `${timestamp}-${randomStr}${ext}`
-
-      const filePath = path.join(uploadDir, filename)
-      await writeFile(filePath, buffer)
-
-      uploadedFiles.push(filename)
-    }
-
-    return NextResponse.json({
-      message: 'Photos uploaded successfully',
-      files: uploadedFiles,
-    })
-  } catch (error: any) {
-    console.error('Upload error:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to upload photos' },
-      { status: 500 }
-    )
+  if (!fs.existsSync(filePath)) {
+    return new NextResponse("Not found", { status: 404 })
   }
+
+  const file = fs.readFileSync(filePath)
+  const ext = path.extname(filename)
+
+  const contentType =
+    ext === ".jpg" || ext === ".jpeg"
+      ? "image/jpeg"
+      : ext === ".png"
+      ? "image/png"
+      : "application/octet-stream"
+
+  return new NextResponse(file, {
+    headers: {
+      "Content-Type": contentType,
+      "Cache-Control": "public, max-age=31536000",
+    },
+  })
 }
+
 
