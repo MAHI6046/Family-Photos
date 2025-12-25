@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readdir } from 'fs/promises'
-import { existsSync } from 'fs'
+import { existsSync, readFileSync } from 'fs'
 import path from 'path'
 
 export async function GET(request: NextRequest) {
@@ -15,11 +15,30 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const photosDir = path.join(process.cwd(), 'public', 'photos', section)
+    // Try static list first (works better on Vercel)
+    try {
+      const staticListPath = path.join(process.cwd(), 'public', 'photos-list.json')
+      if (existsSync(staticListPath)) {
+        const staticList = JSON.parse(readFileSync(staticListPath, 'utf-8'))
+        if (staticList[section] && Array.isArray(staticList[section])) {
+          const photos = staticList[section].map((filename: string) => ({
+            id: filename,
+            filename,
+            section,
+          }))
+          if (photos.length > 0) {
+            return NextResponse.json({ photos })
+          }
+        }
+      }
+    } catch (staticError) {
+      // Fall through to filesystem method
+      console.log('Static list not available, trying filesystem')
+    }
 
-    // Try to read the directory
+    // Fallback to filesystem method (for local development)
+    const photosDir = path.join(process.cwd(), 'public', 'photos', section)
     if (!existsSync(photosDir)) {
-      console.log(`Photos directory does not exist: ${photosDir}`)
       return NextResponse.json({ photos: [] })
     }
 
@@ -38,17 +57,13 @@ export async function GET(request: NextRequest) {
           section,
         }))
 
-      console.log(`Found ${photos.length} photos in ${section}`)
       return NextResponse.json({ photos })
     } catch (readError: any) {
-      console.error(`Error reading directory ${photosDir}:`, readError)
+      console.error(`Error reading directory:`, readError)
       return NextResponse.json({ photos: [] })
     }
   } catch (error: any) {
     console.error('Error fetching photos:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch photos' },
-      { status: 500 }
-    )
+    return NextResponse.json({ photos: [] })
   }
 }
