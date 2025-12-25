@@ -16,18 +16,21 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
 
-    const password = formData.get('password')
-    const section = formData.get('section')
-    const files = formData.getAll('photos') as File[]
+    const passwordValue = formData.get('password')
+    const sectionValue = formData.get('section')
+    const files = formData.getAll('photos')
 
-    if (!password || password !== UPLOAD_PASSWORD) {
+    // Validate password
+    if (typeof passwordValue !== 'string' || passwordValue !== UPLOAD_PASSWORD) {
       return NextResponse.json({ error: 'Invalid password' }, { status: 401 })
     }
 
-    if (!section || files.length === 0) {
-      return NextResponse.json({ error: 'Missing data' }, { status: 400 })
+    // Validate section
+    if (typeof sectionValue !== 'string' || !sectionValue.trim()) {
+      return NextResponse.json({ error: 'Invalid section' }, { status: 400 })
     }
 
+    const section = sectionValue.trim()
     const sectionDir = path.join(BASE_UPLOAD_DIR, section)
 
     if (!existsSync(sectionDir)) {
@@ -36,11 +39,13 @@ export async function POST(request: NextRequest) {
 
     const uploadedFiles: string[] = []
 
-    for (const file of files) {
-      if (!file || file.size === 0) continue
+    for (const entry of files) {
+      if (!(entry instanceof File)) continue
+      if (entry.size === 0) continue
 
-      const buffer = Buffer.from(await file.arrayBuffer())
-      const ext = path.extname(file.name)
+      const buffer = Buffer.from(await entry.arrayBuffer())
+      const ext = path.extname(entry.name) || '.jpg'
+
       const filename = `${Date.now()}-${Math.random()
         .toString(36)
         .slice(2, 8)}${ext}`
@@ -53,8 +58,8 @@ export async function POST(request: NextRequest) {
       success: true,
       files: uploadedFiles,
     })
-  } catch (err: any) {
-    console.error('UPLOAD ERROR:', err)
+  } catch (error) {
+    console.error('UPLOAD ERROR:', error)
     return NextResponse.json(
       { error: 'Upload failed on server' },
       { status: 500 }
